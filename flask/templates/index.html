@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Attari Language Bot</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+  
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  :root {
+    --primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    --accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    --success: linear-gradient(135deg, #81ffef 0%, #f067b4 100%);
+    --bg-dark: #0a0a0f;
+    --bg-card: rgba(255, 255, 255, 0.05);
+    --bg-glass: rgba(255, 255, 255, 0.1);
+    --text-primary: #ffffff;
+    --text-secondary: rgba(255, 255, 255, 0.7);
+    --text-muted: rgba(255, 255, 255, 0.5);
+    --border: rgba(255, 255, 255, 0.1);
+    --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    --glow: 0 0 20px rgba(102, 126, 234, 0.4);
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg-dark);
+    background-image: 
+      radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.15) 0%, transparent 50%),
+      radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.1) 0%, transparent 50%);
+    min-height: 100vh;
+    overflow-x: hidden;
+    color: var(--text-primary);
+  }
+
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+    animation: fadeInUp 0.8s ease-out;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 3rem;
+    position: relative;
+  }
+
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -50px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 100px;
+    background: var(--accent);
+    border-radius: 50%;
+    filter: blur(40px);
+    opacity: 0.6;
+    animation: pulse 3s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.6; }
+    50% { transform: translateX(-50%) scale(1.2); opacity: 0.8; }
+  }
+
+  .title {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 800;
+    background: var(--primary);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.5rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .subtitle {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    font-weight: 400;
+    opacity: 0;
+    animation: fadeIn 1s ease-out 0.5s forwards;
+  }
+
+  @keyframes fadeIn {
+    to { opacity: 1; }
+  }
+
+  .controls-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .control-group {
+    position: relative;
+  }
+
+  .control-label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .select-wrapper {
+    position: relative;
+    overflow: hidden;
+    border-radius: 16px;
+    background: var(--bg-glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    transition: all 0.3s ease;
+  }
+
+  .select-wrapper:hover {
+    border-color: rgba(102, 126, 234, 0.5);
+    box-shadow: var(--glow);
+    transform: translateY(-2px);
+  }
+
+  .select-wrapper::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--accent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .select-wrapper:focus-within::before {
+    opacity: 1;
+  }
+
+  select {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    appearance: none;
+  }
+
+  select option {
+    background: var(--bg-dark);
+    color: var(--text-primary);
+    padding: 0.5rem;
+  }
+
+  .select-wrapper::after {
+    content: '▼';
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+    pointer-events: none;
+    transition: transform 0.3s ease;
+  }
+
+  .select-wrapper:hover::after {
+    transform: translateY(-50%) rotate(180deg);
+  }
+
+  .chat-container {
+    background: var(--bg-glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    margin-bottom: 2rem;
+    position: relative;
+  }
+
+  .chat-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--primary);
+    animation: shimmer 2s ease-in-out infinite;
+  }
+
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  .chat-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.02);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .chat-status {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--success);
+    animation: breathe 2s ease-in-out infinite;
+  }
+
+  @keyframes breathe {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.2); opacity: 0.8; }
+  }
+
+  .chat-title {
+    font-weight: 600;
+    color: var(--text-primary);
+    flex: 1;
+  }
+
+  #chat {
+    height: 450px;
+    overflow-y: auto;
+    padding: 1.5rem;
+    scroll-behavior: smooth;
+  }
+
+  #chat::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  #chat::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  #chat::-webkit-scrollbar-thumb {
+    background: var(--accent);
+    border-radius: 10px;
+  }
+
+  .message {
+    max-width: 85%;
+    margin: 1rem 0;
+    opacity: 0;
+    animation: messageSlideIn 0.5s ease-out forwards;
+  }
+
+  @keyframes messageSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .user-msg {
+    margin-left: auto;
+    background: var(--primary);
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: 20px 20px 8px 20px;
+    font-weight: 500;
+    box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .user-msg::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    animation: messageShine 2s ease-in-out;
+  }
+
+  @keyframes messageShine {
+    0% { left: -100%; }
+    100% { left: 100%; }
+  }
+
+  .bot-msg {
+    margin-right: auto;
+    background: var(--bg-card);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    border-radius: 20px 20px 20px 8px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow);
+    transition: all 0.3s ease;
+  }
+
+  .bot-msg:hover {
+    border-color: rgba(102, 126, 234, 0.3);
+    transform: translateY(-2px);
+  }
+
+  .bot-response .main-response p {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    line-height: 1.6;
+  }
+
+  .bot-response .translation p {
+    font-style: italic;
+    color: var(--text-secondary);
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    border-left: 4px solid;
+    border-image: var(--accent) 1;
+    margin-bottom: 1rem;
+  }
+
+  .bot-response h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 1.5rem 0 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid;
+    border-image: var(--secondary) 1;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .bot-response h3::before {
+    content: '✨';
+    font-size: 0.9rem;
+  }
+
+  .bot-response ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .bot-response ul li {
+    background: rgba(255, 255, 255, 0.05);
+    margin: 0.5rem 0;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    border-left: 3px solid;
+    border-image: var(--success) 1;
+    transition: all 0.3s ease;
+  }
+
+  .bot-response ul li:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateX(5px);
+  }
+
+  .bot-response ul li strong {
+    color: var(--text-primary);
+    font-weight: 700;
+  }
+
+  .input-container {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .input-wrapper {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    border-radius: 16px;
+    background: var(--bg-glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    transition: all 0.3s ease;
+  }
+
+  .input-wrapper:focus-within {
+    border-color: rgba(102, 126, 234, 0.5);
+    box-shadow: var(--glow);
+    transform: translateY(-2px);
+  }
+
+  #userInput {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 500;
+  }
+
+  #userInput::placeholder {
+    color: var(--text-muted);
+  }
+
+  .btn {
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 16px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: all 0.5s ease;
+  }
+
+  .btn:hover::before {
+    left: 100%;
+  }
+
+  .btn-primary {
+    background: var(--primary);
+    color: white;
+    box-shadow: var(--shadow);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(102, 126, 234, 0.4);
+  }
+
+  .btn-secondary {
+    background: var(--secondary);
+    color: white;
+    box-shadow: var(--shadow);
+  }
+
+  .btn-secondary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(240, 147, 251, 0.4);
+  }
+
+  .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+  }
+
+  .floating-elements {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  .floating-circle {
+    position: absolute;
+    border-radius: 50%;
+    background: var(--accent);
+    filter: blur(20px);
+    opacity: 0.1;
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .floating-circle:nth-child(1) {
+    width: 80px;
+    height: 80px;
+    top: 20%;
+    left: 10%;
+    animation-delay: 0s;
+  }
+
+  .floating-circle:nth-child(2) {
+    width: 120px;
+    height: 120px;
+    top: 60%;
+    right: 15%;
+    animation-delay: 2s;
+  }
+
+  .floating-circle:nth-child(3) {
+    width: 100px;
+    height: 100px;
+    bottom: 20%;
+    left: 20%;
+    animation-delay: 4s;
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px) rotate(0deg);
+    }
+    33% {
+      transform: translateY(-20px) rotate(120deg);
+    }
+    66% {
+      transform: translateY(10px) rotate(240deg);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .container {
+      padding: 1rem;
+    }
+    
+    .controls-grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    
+    .input-container {
+      flex-direction: column;
+    }
+    
+    .title {
+      font-size: 2rem;
+    }
+    
+    #chat {
+      height: 350px;
+    }
+  }
+
+  .typing-indicator {
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 1rem 0;
+    color: var(--text-secondary);
+    font-style: italic;
+  }
+
+  .typing-dots {
+    display: flex;
+    gap: 0.25rem;
+  }
+
+  .typing-dots span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: typingBounce 1.4s ease-in-out infinite;
+  }
+
+  .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes typingBounce {
+    0%, 80%, 100% { transform: translateY(0); opacity: 0.5; }
+    40% { transform: translateY(-10px); opacity: 1; }
+  }
+
+  .success-animation {
+    animation: successPulse 0.6s ease-out;
+  }
+
+  @keyframes successPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+  }
+</style>
+</head>
+<body>
+
+<div class="floating-elements">
+  <div class="floating-circle"></div>
+  <div class="floating-circle"></div>
+  <div class="floating-circle"></div>
+</div>
+
+<div class="container">
+  <header class="header">
+    <h1 class="title">Attari Language Bot</h1>
+    <p class="subtitle">Master languages with AI-powered conversations</p>
+  </header>
+
+  <div class="controls-grid">
+    <div class="control-group">
+      <label class="control-label" for="language">Target Language</label>
+      <div class="select-wrapper">
+        <select id="language" aria-label="Select target language">
+          <option value="English" selected>English</option>
+          <option value="Arabic">Arabic</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label" for="level">Learning Level</label>
+      <div class="select-wrapper">
+        <select id="level" aria-label="Select learning level">
+          <option value="beginner" selected>Beginner</option>
+          <option value="intermediate">Intermediate</option>
+          <option value="expert">Expert</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="chat-container">
+    <div class="chat-header">
+      <div class="chat-status"></div>
+      <div class="chat-title">AI Language Assistant</div>
+    </div>
+    <div id="chat" role="log" aria-live="polite" aria-relevant="additions"></div>
+    <div class="typing-indicator" id="typingIndicator">
+      <span>AI is thinking</span>
+      <div class="typing-dots">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="input-container">
+    <div class="input-wrapper">
+      <input type="text" id="userInput" placeholder="Type your message here..." aria-label="Type your message here" autocomplete="off" />
+    </div>
+    <button id="sendBtn" class="btn btn-primary" aria-label="Send message">
+      Send
+    </button>
+  </div>
+
+  <button id="clearBtn" class="btn btn-secondary" aria-label="Clear chat history">
+    Clear Chat
+  </button>
+</div>
+
+<script>
+  const chatDiv = document.getElementById('chat');
+  const userInput = document.getElementById('userInput');
+  const sendBtn = document.getElementById('sendBtn');
+  const clearBtn = document.getElementById('clearBtn');
+  const languageSelect = document.getElementById('language');
+  const levelSelect = document.getElementById('level');
+  const typingIndicator = document.getElementById('typingIndicator');
+
+  // Unique session ID per user session
+  const sessionId = 'session_' + Date.now();
+
+  // Sanitize to prevent XSS in chat display
+  function sanitizeHTML(str) {
+    return str.replace(/[&<>"'`=\/]/g, function(s) {
+      return ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;',
+        '`': '&#x60;',
+        '=': '&#x3D;',
+        '/': '&#x2F;'
+      })[s];
+    });
+  }
+
+  function showTypingIndicator() {
+    typingIndicator.style.display = 'flex';
+    chatDiv.scrollTop = chatDiv.scrollHeight;
+  }
+
+  function hideTypingIndicator() {
+    typingIndicator.style.display = 'none';
+  }
+
+  function appendMessage(htmlContent, isUser = true) {
+    const div = document.createElement('div');
+    div.className = `message ${isUser ? 'user-msg' : 'bot-msg'}`;
+    if (isUser) {
+      div.textContent = htmlContent;
+    } else {
+      div.innerHTML = htmlContent;
+    }
+    chatDiv.appendChild(div);
+    
+    // Smooth scroll to bottom
+    setTimeout(() => {
+      chatDiv.scrollTop = chatDiv.scrollHeight;
+    }, 100);
+  }
+
+  async function sendMessage() {
+    const message = userInput.value.trim();
+    if (!message) return;
+
+    // Add success animation to send button
+    sendBtn.classList.add('success-animation');
+    setTimeout(() => sendBtn.classList.remove('success-animation'), 600);
+
+    appendMessage(message, true);
+    userInput.value = '';
+    userInput.disabled = true;
+    sendBtn.disabled = true;
+    showTypingIndicator();
+
+    const payload = {
+      message,
+      level: levelSelect.value,
+      language: languageSelect.value,
+      session_id: sessionId
+    };
+
+    try {
+      // Simulate API delay for better UX
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const res = await fetch('/chat', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+
+      hideTypingIndicator();
+
+      if (data.response) {
+        const resp = data.response;
+        const langKey = languageSelect.value.toLowerCase();
+        const botText = sanitizeHTML(resp.translations[langKey] || "No response");
+        const urduExplanation = sanitizeHTML(resp.translations.urdu || "");
+
+        let difficultWordsHTML = "";
+        if (resp.difficult_words && resp.difficult_words.length > 0) {
+          difficultWordsHTML = `<section class="difficult-words">
+            <h3>Difficult Words</h3>
+            <ul>`;
+          resp.difficult_words.forEach(dw => {
+            difficultWordsHTML += `<li><strong>${sanitizeHTML(dw.word)}</strong>: ${sanitizeHTML(dw.meaning_in_urdu)}</li>`;
+          });
+          difficultWordsHTML += "</ul></section>";
+        }
+
+        let learningTipHTML = resp.learning_tip ? `<section class="learning-tip"><h3>Learning Tip</h3><p>${sanitizeHTML(resp.learning_tip)}</p></section>` : "";
+        let followUpHTML = resp.follow_up_question ? `<section class="follow-up"><h3>Follow-up Question</h3><p>${sanitizeHTML(resp.follow_up_question)}</p></section>` : "";
+
+        appendMessage(`
+          <article class="bot-response">
+            <section class="main-response"><p>${botText}</p></section>
+            <section class="translation"><p><em>${urduExplanation}</em></p></section>
+            ${difficultWordsHTML}
+            ${learningTipHTML}
+            ${followUpHTML}
+          </article>`, false);
+      } else if (data.error) {
+        hideTypingIndicator();
+        appendMessage(`<div style="color: #ff6b6b; font-weight: 600;">❌ Error: ${sanitizeHTML(data.error)}</div>`, false);
+      }
+    } catch (e) {
+      hideTypingIndicator();
+      appendMessage(`<div style="color: #ff6b6b; font-weight: 600;">❌ Failed to get response. Please try again.</div>`, false);
+    } finally {
+      userInput.disabled = false;
+      sendBtn.disabled = false;
+      userInput.focus();
+    }
+  }
+
+  sendBtn.addEventListener('click', sendMessage);
+  userInput.addEventListener('keydown', e => { 
+    if(e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  clearBtn.addEventListener('click', async () => {
+    // Add success animation
+    clearBtn.classList.add('success-animation');
+    setTimeout(() => clearBtn.classList.remove('success-animation'), 600);
+
+    try {
+      await fetch('/clear-history', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ session_id: sessionId })
+      });
+    } catch (e) {
+      console.error('Failed to clear server history:', e);
+    }
+    
+    chatDiv.innerHTML = "";
+    appendMessage(`
+      <div style="text-align: center; color: var(--text-secondary); font-style: italic;">
+        🎉 Chat cleared! Ready for a fresh conversation.
+      </div>`, false);
+    userInput.focus();
+  });
+
+  // Focus input on load
+  userInput.focus();
+
+  // Add welcome message
+  setTimeout(() => {
+    appendMessage(`
+      <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">🚀</div>
+        <div style="font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary);">Welcome to Attari Language Bot!</div>
+        <div>Start typing to begin your language learning journey.</div>
+      </div>`, false);
+  }, 500);
+
+  // Add subtle hover effects to selects
+  document.querySelectorAll('select').forEach(select => {
+    select.addEventListener('change', function() {
+      this.parentElement.classList.add('success-animation');
+      setTimeout(() => {
+        this.parentElement.classList.remove('success-animation');
+      }, 600);
+    });
+  });
+</script>
+
+</body>
+</html>

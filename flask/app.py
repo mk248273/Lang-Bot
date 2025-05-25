@@ -176,7 +176,7 @@ def chat():
     data = request.get_json()
     user_input = data.get('message', '').strip()
     learning_level = data.get('level', 'beginner').strip().lower()
-    target_language = data.get('language', 'English').strip()
+    target_language = data.get('language', 'Arabic').strip()
     session_id = data.get('session_id', 'default')
 
     if not user_input:
@@ -185,7 +185,7 @@ def chat():
     if learning_level not in ['beginner', 'intermediate', 'expert']:
         return jsonify({"error": "Invalid learning level"}), 400
 
-    if target_language not in ['Arabic''English']:
+    if target_language not in ['Arabic','English']:
         return jsonify({"error": "Invalid language selected"}), 400
 
     response = process_user_input(user_input, learning_level, target_language, session_id)
